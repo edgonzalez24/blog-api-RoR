@@ -9,8 +9,11 @@ class PostsController < ApplicationController
 
   # GET /posts
   def index
-    @post = Post.where(published: true)
-    render json: @post, status: :ok
+    @posts = Post.where(published: true)
+    if !params[:search].nil? && params[:search].present?
+      @posts = PostsSearchService.search(@posts, params[:search])
+    end
+    render json: @posts, status: :ok
   end
 
   # GET /posts/{id}
@@ -21,6 +24,7 @@ class PostsController < ApplicationController
 
   # POST /posts
   def create
+    # This is important to return exeption in the case post was not create and this can handle with exeption handler
     @post = Post.create!(create_params)
     render json: @post, status: :created
   end
@@ -35,6 +39,7 @@ class PostsController < ApplicationController
 
   private
 
+  # Validation list
   def create_params
     params.require(:post).permit(:title, :content, :published, :user_id)
   end
